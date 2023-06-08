@@ -23,7 +23,7 @@
 
             <div class="navbar-header">
               <a href="/" class="navbar-brand">
-                <!-- <img src="/static/images/warbler-logo.png" alt="logo"> -->
+                <img src="/static/friender.jpg" alt="logo">
                 <span>Friender</span>
               </a>
             </div>
@@ -36,9 +36,10 @@
                 <li>
                   <a href="/users/{{ g.user.username }}">
                     <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
+                    <span>{{ g.user.username }}</span>
                   </a>
                 </li>
-                <li><a href="/messages/new">New Message</a></li>
+                <!-- <li><a href="/messages/new">something-match-related</a></li> -->
                 <li>
                   <form method="POST" action="/logout">
                     {{ g.csrf_form.hidden_tag() }}

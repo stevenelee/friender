@@ -6,7 +6,7 @@ from datetime import datetime
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
-DEFAULT_IMAGE_URL = ""
+DEFAULT_IMAGE_URL = "https://i.pinimg.com/originals/4a/d8/60/4ad860d80de937bc63f5a7069b7d0215.jpg"
 
 
 class Match(db.Model):

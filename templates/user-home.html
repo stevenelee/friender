@@ -5,7 +5,7 @@
 <div class="col-lg-6 col-md-8 col-sm-12">
   <ul class="list-group" id="matches">
     {% for match in matches %}
-      {% if match.username != g.user.username %}
+      {% if (match.username != g.user.username) and  %}
         <li class="list-group-item">
           <a href="/users/{{ match.username }}" class="match-link">
             <img src="{{ match.image_url }}" alt="" class="timeline-image">

@@ -23,7 +23,7 @@ body.error-404 {
 /* ======================= Nav */
 
 .navbar {
-  background-color: #fff;
+  background-color: black;
   height: 46px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
   margin-bottom: 1rem;
@@ -32,12 +32,13 @@ body.error-404 {
 }
 
 .navbar a, .btn-link {
-  color: #66757f;
-  font-size: 13px;
+  color: white;
+  font-size: 14px;
   font-weight: bold;
+  text-decoration: none;
 }
 
-.navbar a:hover {
+.navbar a:hover, .btn-link:hover{
   color: #1c94e0;
 }
 
@@ -101,45 +102,6 @@ nav form.navbar-form {
 #search:focus {
   box-shadow: none;
   border: 2px solid #007bff;
-}
-
-/* on "onboarding" pages (signup & login), the navbar is
-   different: no search box, the logo is centered, and it has
-   a background color.
- */
-
-.onboarding > .navbar {
-  background-image: url("/static/images/nav-bg.png");
-  background-size: 100% 100%;
-}
-
-.onboarding .navbar-header {
-  margin: 0 auto;
-}
-
-.onboarding .navbar-brand {
-  margin: 0;
-}
-
-.onboarding .navbar-brand span {
-  display: none;
-}
-
-.onboarding .nav.navbar-nav.navbar-right {
-  position: absolute;
-  right: 16px;
-}
-
-.onboarding > .navbar a {
-  color: #fff;
-}
-
-.onboarding > .navbar form.navbar-form {
-  display: none;
-}
-
-.onboarding {
-  background-color: #fff;
 }
 
 @media (max-width: 468px) {

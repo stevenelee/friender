@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, or_
 
 from forms import SignUpForm, LoginForm, CSRFProtection
 from models import db, connect_db, User, Match
@@ -21,6 +21,7 @@ app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
+
 
 #############################################################################
 # User signup/login/logout
@@ -54,9 +55,6 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
-
-
-
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -96,7 +94,7 @@ def signup():
 
         except IntegrityError:
             # todo: add flash to templates
-            flash("Username already taken", 'danger')
+            flash("Username/email already taken", 'danger')
             return render_template('signup.html', form=form)
 
         do_login(user)
@@ -105,7 +103,6 @@ def signup():
 
     else:
         return render_template('signup.html', form=form)
-
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -146,8 +143,9 @@ def logout():
     flash("You have successfully logged out.", 'success')
     return redirect("/login")
 
+
 ##############################################################################
-# Homepage and error pages
+# User routes
 # @app.get('/')
 # def homepage():
 #     """Show homepage:
@@ -155,29 +153,6 @@ def logout():
 #     - anon users: login/signup message
 #     - logged in:
 #     """
-
-@app.get('/')
-def homepage():
-    """Show user users who want to match with them or who they might
-    want to match with"""
-
-    if g.user:
-        distance = g.user.friend_radius
-        zipcode = g.user.zipcode
-        friend_zipcodes = get_zipcodes(distance, zipcode)
-
-        matches = (User
-                   .query
-                   .filter(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode)
-                   .limit(10)
-                   .all())
-
-        return render_template("user-home.html", matches=matches)
-
-
-    else:
-        return render_template("not-user-home.html")
-
 
 @app.post("/users/<username>/no-match")
 def no_match(username):
@@ -199,6 +174,7 @@ def no_match(username):
     db.session.commit()
 
     return redirect("/")
+
 
 @app.post("/users/<username>/match")
 def match(username):
@@ -222,3 +198,27 @@ def match(username):
     return redirect("/")
 
 
+##############################################################################
+# Homepage and error pages
+
+@app.get('/')
+def homepage():
+    """Show user users who want to match with them or who they might
+    want to match with"""
+
+    if g.user:
+        distance = g.user.friend_radius
+        zipcode = g.user.zipcode
+        friend_zipcodes = get_zipcodes(distance, zipcode)
+
+        matches = (User
+                   .query
+                   .filter(or_(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode))
+                   .limit(10)
+                   .all())
+
+        return render_template("user-home.html", matches=matches)
+
+
+    else:
+        return render_template("not-user-home.html")
