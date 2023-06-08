@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm, LoginForm, CSRFProtection
 from models import db, connect_db, User
-from utils import upload_image
+from utils import upload_image, get_zipcodes
 
 load_dotenv()
 
@@ -15,26 +15,12 @@ CURR_USER_KEY = "curr_user"
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-print(os.environ['DATABASE_URL'])
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
-
-##############################################################################
-# Homepage and error pages
-# @app.get('/')
-# def homepage():
-#     """Show homepage:
-
-#     - anon users: login/signup message
-#     - logged in: two lists of users:
-#                     1. users who have chosen match status:yes
-#                     2. users with status:unanswered
-#     """
-
 
 #############################################################################
 # User signup/login/logout
@@ -144,17 +130,34 @@ def login():
     return render_template('login.html', form=form)
 
 
-@app.route('/', methods=["GET", "POST"])
+##############################################################################
+# Homepage and error pages
+# @app.get('/')
+# def homepage():
+#     """Show homepage:
+
+#     - anon users: login/signup message
+#     - logged in:
+#     """
+
+@app.get('/')
 def homepage():
     """Show user users who want to match with them or who they might
     want to match with"""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
+    if g.user:
+        distance = g.user.friend_radius
+        zipcode = g.user.zipcode
+        friend_zipcodes = get_zipcodes(distance, zipcode)
+
+        matches = (User
+                   .query
+                   .filter(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode)
+                   .limit(10)
+                   .all())
+
+        return render_template("user-home.html", matches=matches)
+
+
+    else:
         return render_template("not-user-home.html")
-
-    distance = g.user.friend_radius
-    zipcode - g.user.zipcode
-
-
-

@@ -16,7 +16,47 @@
     <link rel="shortcut icon" href="/static/favicon.ico">
     </head>
 
-    <body>
+    <body class="{% block body_class %}{% endblock %}">
+
+        <nav class="navbar navbar-expand">
+          <div class="container-fluid">
+
+            <div class="navbar-header">
+              <a href="/" class="navbar-brand">
+                <!-- <img src="/static/images/warbler-logo.png" alt="logo"> -->
+                <span>Friender</span>
+              </a>
+            </div>
+
+            <ul class="nav navbar-nav navbar-right">
+              {% if not g.user %}
+                <li><a href="/signup">Sign up</a></li>
+                <li><a href="/login">Log in</a></li>
+              {% else %}
+                <li>
+                  <a href="/users/{{ g.user.username }}">
+                    <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
+                  </a>
+                </li>
+                <li><a href="/messages/new">New Message</a></li>
+                <li>
+                  <form method="POST" action="/logout">
+                    {{ g.csrf_form.hidden_tag() }}
+                    <button class="btn btn-link">Log out</button>
+                  </form>
+                <li>
+              {% endif %}
+
+            </ul>
+          </div>
+        </nav>
+
+        <div class="container">
+
+          {% for category, message in get_flashed_messages(with_categories=True) %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+
         {% block content %}
         {% endblock %}
 

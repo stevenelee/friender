@@ -1,11 +1,35 @@
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+
 from datetime import datetime
 
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
 DEFAULT_IMAGE_URL = ""
+
+
+class Match(db.Model):
+
+    __tablename__ = 'matches'
+
+    user_being_matched = db.Column(
+        db.String(16),
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True,
+    )
+
+    user_matching = db.Column(
+        db.String(16),
+        db.ForeignKey('users.username', ondelete="cascade"),
+        primary_key=True,
+    )
+
+    match_status = db.Column(
+        db.Boolean,
+        nullable=False,
+    )
+
 
 class User(db.Model):
     """User in the system."""
@@ -68,20 +92,20 @@ class User(db.Model):
 
     # messages = db.relationship('Message', backref="user", cascade="all, delete-orphan")
 
-    # followers = db.relationship(
-    #     "User",
-    #     secondary="follows",
-    #     primaryjoin=(Follow.user_being_followed_id == id),
-    #     secondaryjoin=(Follow.user_following_id == id),
-    #     backref="following",
-    # )
+    matches = db.relationship(
+        "User",
+        secondary="matches",
+        primaryjoin=(Match.user_being_matched == username),
+        secondaryjoin=(Match.user_matching == username),
+        backref="matching",
+    )
 
     # liked_messages = db.relationship('Message',
     #                                  secondary="likes",
     #                                  backref="liking_user")
 
     def __repr__(self):
-        return f"<User #{self.id}: {self.username}, {self.email}>"
+        return f"<User #{self.username}: {self.first_name} {self.last_name}, {self.email}>"
 
 
     @classmethod
@@ -148,17 +172,6 @@ class User(db.Model):
         found_user_list = [
             user for user in self.following if user == other_user]
         return len(found_user_list) == 1
-
-
-    def is_liking(self, msg):
-        """Is this user liking message?"""
-
-        liked_message_list = [
-            message for message in self.liked_messages if message == msg]
-        return len(liked_message_list) == 1
-
-
-
 
 
 def connect_db(app):
