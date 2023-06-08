@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm, LoginForm, CSRFProtection
-from models import db, connect_db, User
+from models import db, connect_db, User, Match
 from utils import upload_image, get_zipcodes
 
 load_dotenv()
@@ -130,6 +130,22 @@ def login():
     return render_template('login.html', form=form)
 
 
+@app.post("/logout")
+def logout():
+    """logout user and redirect to login page. Show success or unauthorized
+    message"""
+
+    form = g.csrf_form
+
+    if not form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    do_logout()
+
+    flash("You have successfully logged out.", 'success')
+    return redirect("/login")
+
 ##############################################################################
 # Homepage and error pages
 # @app.get('/')
@@ -161,3 +177,48 @@ def homepage():
 
     else:
         return render_template("not-user-home.html")
+
+
+@app.post("/users/<username>/no-match")
+def no_match(username):
+    """route for when there isn't a match"""
+
+    form = g.csrf_form
+
+    if not form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    match = Match(
+                user_being_matched=username,
+                user_matching=g.user.username,
+                match_status=False,
+    )
+
+    db.session.add(match)
+    db.session.commit()
+
+    return redirect("/")
+
+@app.post("/users/<username>/match")
+def match(username):
+    """route for when there is a match"""
+
+    form = g.csrf_form
+
+    if not form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    match = Match(
+                user_being_matched=username,
+                user_matching=g.user.username,
+                match_status=True,
+    )
+
+    db.session.add(match)
+    db.session.commit()
+
+    return redirect("/")
+
+
