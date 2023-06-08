@@ -108,9 +108,6 @@ class User(db.Model):
             image_url=image_url,
         )
 
-        if user.username == "" or user.email == "":
-            raise Exception("Empty username or email")
-
         db.session.add(user)
         return user
 

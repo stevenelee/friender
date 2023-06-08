@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import SignUpForm
+from forms import SignUpForm, LoginForm, CSRFProtection
 from models import db, connect_db, User
 from utils import upload_image
 
@@ -15,6 +15,7 @@ CURR_USER_KEY = "curr_user"
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+print(os.environ['DATABASE_URL'])
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
@@ -35,8 +36,43 @@ connect_db(app)
 #     """
 
 
-##############################################################################
+#############################################################################
 # User signup/login/logout
+
+@app.before_request
+def add_user_to_g():
+    """If we're logged in, add curr user to Flask global."""
+
+    if CURR_USER_KEY in session:
+        g.user = User.query.get(session[CURR_USER_KEY])
+
+    else:
+        g.user = None
+
+
+@app.before_request
+def add_csrf_only_form():
+    """Add a CSRF-only form so that every route can use it."""
+
+    g.csrf_form = CSRFProtection()
+
+
+def do_login(user):
+    """Log in user."""
+
+    session[CURR_USER_KEY] = user.username
+
+
+def do_logout():
+    """Log out user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
+
+
+
+
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
     """Handle user signup.
@@ -49,7 +85,7 @@ def signup():
     and re-present form.
     """
 
-    # do_logout()
+    do_logout()
 
     form = SignUpForm()
 
@@ -75,28 +111,50 @@ def signup():
         except IntegrityError:
             # todo: add flash to templates
             flash("Username already taken", 'danger')
-            return render_template('form.html', form=form)
+            return render_template('signup.html', form=form)
 
-        # do_login(user)
+        do_login(user)
 
         return redirect("/")
 
     else:
-        return render_template('form.html', form=form)
+        return render_template('signup.html', form=form)
 
 
-# @app.post('/')
-# def upload_image():
-#     """Test upload of Image to S3.
-#     """
-#     print("printing request.files", request.files['image'])
-#     new_file = request.files['image']
 
-#     upload_file(new_file, "s3://jstern-friendly")
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    """Handle user login and redirect to homepage on success."""
 
-#     # g.image = request.files.
+    form = LoginForm()
 
-#     # upload_file(file)
-#     return redirect('/')
+    if form.validate_on_submit():
+        user = User.authenticate(
+            form.username.data,
+            form.password.data,
+        )
+
+        if user:
+            do_login(user)
+            flash(f"Hello, {user.username}!", "success")
+            return redirect("/")
+
+        flash("Invalid credentials.", 'danger')
+
+    return render_template('login.html', form=form)
+
+
+@app.route('/', methods=["GET", "POST"])
+def homepage():
+    """Show user users who want to match with them or who they might
+    want to match with"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return render_template("not-user-home.html")
+
+    distance = g.user.friend_radius
+    zipcode - g.user.zipcode
+
 
 

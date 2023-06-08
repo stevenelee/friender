@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import boto3
 from botocore.exceptions import ClientError
 
+from pyzipcode import ZipCodeDatabase
+
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION')
@@ -23,3 +25,12 @@ def upload_image(file, username):
     s3.upload_fileobj(file, AWS_BUCKET_NAME, aws_filename)
 
     return f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{aws_filename}"
+
+
+def get_zipcodes(zipcode, distance):
+
+    zipcode_db = ZipCodeDatabase()
+    zipcodes = [z_object.zip for z_object in
+                zipcode_db.get_zipcodes_around_radius(zipcode, distance)]
+
+    return zipcodes

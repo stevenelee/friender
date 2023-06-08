@@ -3,8 +3,8 @@ from wtforms import StringField, PasswordField, TextAreaField, FileField, Intege
 from wtforms.validators import InputRequired, Email, Length, Regexp, NumberRange
 
 
-# class CSRFProtection(FlaskForm):
-#     """CSRFProtection form, intentionally has no fields."""
+class CSRFProtection(FlaskForm):
+    """CSRFProtection form, intentionally has no fields."""
 
 
 class SignUpForm(FlaskForm):
@@ -57,4 +57,18 @@ class SignUpForm(FlaskForm):
 
     image = FileField(
         '(Optional) Image'
+    )
+
+
+class LoginForm(FlaskForm):
+    """Form for new users to sign up."""
+
+    username = StringField(
+        'Username',
+        validators=[InputRequired(), Length(min=1,max=30)],
+    )
+
+    password = PasswordField(
+        'Password',
+        validators=[InputRequired(), Length(min=6, max=50)],
     )
