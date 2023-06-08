@@ -1,18 +1,11 @@
 import os
 from dotenv import load_dotenv
-
-import logging
-import boto3
-from botocore.exceptions import ClientError
-
-from flask import (
-    Flask, render_template, request, flash, redirect, session, g, abort,
-)
+from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
+from sqlalchemy.exc import IntegrityError
 
-from forms import (
-    AddImageForm
-)
+from forms import SignUpForm
+from utils import upload_image
 
 load_dotenv()
 
@@ -20,57 +13,69 @@ CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
+##############################################################################
+# Homepage and error pages
+# @app.get('/')
+# def homepage():
+#     """Show homepage:
 
-@app.get('/')
-def inputForm():
-    """input form"""
-
-    form = AddImageForm()
-
-    return render_template('form.html', form=form)
-
-
-@app.post('/')
-def uploadImage():
-    """Test upload of Image to S3.
-    """
-    print("printing request.files", request.files['image'])
-    new_file = request.files['image']
-
-    upload_file(new_file, "s3://jstern-friendly/images")
-
-    # g.image = request.files.
-
-    # upload_file(file)
-    return redirect('/')
+#     - anon users: login/signup message
+#     - logged in: two lists of users:
+#                     1. users who have chosen match status:yes
+#                     2. users with status:unanswered
+#     """
 
 
+##############################################################################
+# User signup/login/logout
+@app.route('/signup', methods=["GET", "POST"])
+def signup():
+    """Handle user signup.
 
+    Create new user and add to DB. Redirect to home page.
 
-def upload_file(file_name, bucket, object_name=None):
-    """Upload a file to an S3 bucket
+    If form not valid, present form.
 
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
+    If the there already is a user with that username: flash message
+    and re-present form.
     """
 
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = os.path.basename(file_name)
+    form = SignUpForm()
 
-    # Upload the file
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
+    if form.validate_on_submit():
+        upload_image(request.files['image'], form.username.data)
+        # try:
 
-    return redirect("/")
+        # except IntegrityError:
+        #     flash("Username already taken", 'danger')
+        #     return render_template('users/signup.html', form=form)
+
+        # do_login(user)
+
+        # return redirect("/")
+
+    else:
+        return render_template('form.html', form=form)
+
+
+# @app.post('/')
+# def upload_image():
+#     """Test upload of Image to S3.
+#     """
+#     print("printing request.files", request.files['image'])
+#     new_file = request.files['image']
+
+#     upload_file(new_file, "s3://jstern-friendly")
+
+#     # g.image = request.files.
+
+#     # upload_file(file)
+#     return redirect('/')
+
+
