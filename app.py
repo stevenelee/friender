@@ -5,6 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm
+from models import db, connect_db, User
 from utils import upload_image
 
 load_dotenv()
@@ -18,6 +19,8 @@ app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
+
+connect_db(app)
 
 ##############################################################################
 # Homepage and error pages
@@ -46,19 +49,37 @@ def signup():
     and re-present form.
     """
 
+    # do_logout()
+
     form = SignUpForm()
 
     if form.validate_on_submit():
-        upload_image(request.files['image'], form.username.data)
-        # try:
+        if request.files['image']:
+            db_image_url = upload_image(request.files['image'], form.username.data)
+        else: db_image_url = User.image_url.default.arg
+        try:
+            user = User.signup(
+                username=form.username.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                email=form.email.data,
+                password=form.password.data,
+                hobbies=form.hobbies.data,
+                interests=form.interests.data,
+                zipcode=form.zipcode.data,
+                friend_radius=form.friend_radius.data,
+                image_url=db_image_url
+            )
+            db.session.commit()
 
-        # except IntegrityError:
-        #     flash("Username already taken", 'danger')
-        #     return render_template('users/signup.html', form=form)
+        except IntegrityError:
+            # todo: add flash to templates
+            flash("Username already taken", 'danger')
+            return render_template('form.html', form=form)
 
         # do_login(user)
 
-        # return redirect("/")
+        return redirect("/")
 
     else:
         return render_template('form.html', form=form)
