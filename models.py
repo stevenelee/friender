@@ -92,7 +92,7 @@ class User(db.Model):
 
     # messages = db.relationship('Message', backref="user", cascade="all, delete-orphan")
 
-    matches = db.relationship(
+    matched = db.relationship(
         "User",
         secondary="matches",
         primaryjoin=(Match.user_being_matched == username),

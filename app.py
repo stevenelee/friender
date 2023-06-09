@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm, LoginForm, CSRFProtection
@@ -142,7 +142,7 @@ def logout():
     do_logout()
 
     flash("You have successfully logged out.", 'success')
-    return redirect("/login")
+    return redirect("/")
 
 
 ##############################################################################
@@ -214,7 +214,8 @@ def homepage():
 
         matches = (User
                    .query
-                   .filter(or_(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode))
+                   .filter(and_(User.username != g.user.username,
+                            (or_(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode))))
                    .limit(10)
                    .all())
 

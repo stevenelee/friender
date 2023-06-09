@@ -2,36 +2,40 @@
 
 {% block content %}
 
-<div class="col-lg-6 col-md-8 col-sm-12">
+<div class="col-lg-12 col-md-12 col-sm-12">
   <ul class="list-group" id="matches">
     {% for match in matches %}
-      {% if match.username != g.user.username %}
+      {% if match not in g.user.matching and g.user not in match.matching %}
         <li class="list-group-item">
           <a href="/users/{{ match.username }}" class="match-link">
             <img src="{{ match.image_url }}" alt="" class="timeline-image">
           </a>
           <div class="match-area">
-            <a href="/users/{{ match.username }}">{{ match.username }}</a>
-            <p>{{ match.hobbies }}</p>
-            <p>{{ match.interests }}</p>
-            <form method="POST"
-                  action="/users/{{ match.username }}/match">
-              <input type="hidden"
-                    name="came_from"
-                    value="{{request.url}}">
-                  {{ g.csrf_form.hidden_tag() }}
-              <button class="btn btn-sm btn-primary">Match!</button>
-              </button>
-            </form>
-            <form method="POST"
-                  action="/users/{{ match.username }}/no-match">
-              <input type="hidden"
-                    name="came_from"
-                    value="{{request.url}}">
-                  {{ g.csrf_form.hidden_tag() }}
-              <button class="btn btn-sm btn-danger">No Thanks!</button>
-              </button>
-            </form>
+            <a href="/users/{{ match.username }}">
+              <h1>{{ match.username }}</h1>
+            </a>
+            <h4>Hobbies: {{ match.hobbies }}</h4>
+            <h4>Interests: {{ match.interests }}</h4>
+            <div class="match-buttons">
+              <form method="POST"
+                    action="/users/{{ match.username }}/match">
+                <input type="hidden"
+                      name="came_from"
+                      value="{{request.url}}">
+                    {{ g.csrf_form.hidden_tag() }}
+                <button class="btn btn-sm btn-primary">Match Me!</button>
+                </button>
+              </form>
+              <form method="POST"
+                    action="/users/{{ match.username }}/no-match">
+                <input type="hidden"
+                      name="came_from"
+                      value="{{request.url}}">
+                    {{ g.csrf_form.hidden_tag() }}
+                <button class="btn btn-sm btn-danger">No Thanks...</button>
+                </button>
+              </form>
+            </div>
           </div>
         </li>
       {% endif %}

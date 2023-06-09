@@ -36,8 +36,11 @@
                 <li>
                   <a href="/users/{{ g.user.username }}">
                     <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
-                    <span>{{ g.user.username }}</span>
+                    <!-- <span>{{ g.user.username }}</span> -->
                   </a>
+                </li>
+                <li>
+                  <a href="/users/{{ g.user.username }}">{{ g.user.username }}</a>
                 </li>
                 <!-- <li><a href="/messages/new">something-match-related</a></li> -->
                 <li>
