@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="col-lg-12 col-md-12 col-sm-12">
+  <ul class="list-group" id="matches">
+    {% for match in matches %}
+        <li class="list-group-item">
+          <a href="/users/{{ match.username }}" class="match-link">
+            <img src="{{ match.image_url }}" alt="" class="timeline-image">
+          </a>
+          <div class="match-area">
+            <a href="/users/{{ match.username }}">
+              <h1>{{ match.username }}</h1>
+            </a>
+            <h4>Hobbies: {{ match.hobbies }}</h4>
+            <h4>Interests: {{ match.interests }}</h4>
+            <div class="match-buttons">
+              <form method="POST"
+                    action="/users/{{ match.username }}/match">
+                <input type="hidden"
+                      name="came_from"
+                      value="{{request.url}}">
+                    {{ g.csrf_form.hidden_tag() }}
+                <button class="btn btn-sm btn-primary">Match Me!</button>
+                </button>
+              </form>
+              <form method="POST"
+                    action="/users/{{ match.username }}/no-match">
+                <input type="hidden"
+                      name="came_from"
+                      value="{{request.url}}">
+                    {{ g.csrf_form.hidden_tag() }}
+                <button class="btn btn-sm btn-danger">No Thanks...</button>
+                </button>
+              </form>
+            </div>
+          </div>
+        </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% endblock %}

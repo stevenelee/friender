@@ -224,3 +224,67 @@ def homepage():
 
     else:
         return render_template("not-user-home.html")
+
+
+
+@app.get('/users/<username>/potential-matches')
+def potential_matches(username):
+    """Show other users who want to be friends"""
+
+    if g.user:
+
+        matches_list = (Match
+                  .query
+                  .join(User, User.username == Match.user_being_matched)
+                  .filter(Match.match_status.is_(True))
+                  .all())
+        matches = User.query.filter(User.username.in_([m.user_matching for m in matches_list])).all()
+        return render_template("potential-matches.html", matches=matches)
+
+    else:
+        return render_template("not-user-home.html")
+
+
+@app.get('/users/<username>/matches')
+def matches(username):
+    """Show matches/friends"""
+
+    if g.user:
+
+        matches_list = (Match
+                  .query
+                  .filter
+                  (and_(and_(Match.user_being_matched == username,
+                               Match.match_status.is_(True))),
+                       (and_(Match.user_matching == username,
+                               Match.match_status.is_(True))))
+                  .all())
+
+        matches_list1 = matches_list = (Match
+                  .query
+                  .filter
+                    (and_(Match.user_being_matched == username,
+                               Match.match_status.is_(True)))
+                  .all())
+
+        matches_list2 = matches_list = (Match
+                  .query
+                  .filter
+                    (and_(Match.user_matching == username,
+                               Match.match_status.is_(True)))
+                  .all())
+
+        matches_list3 = []
+
+        for el in matches_list1:
+            if el.user_being_matched in matches_list2:
+                matches_list3.append(el.user_matching)
+
+
+
+        matches = User.query.filter(User.username.in_([m.user_matching for m in matches_list])).all()
+        breakpoint()
+        return render_template("matches.html", matches=matches_list3)
+
+    else:
+        return render_template("not-user-home.html")
