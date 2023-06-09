@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, not_
 from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm, LoginForm, CSRFProtection
@@ -238,7 +238,9 @@ def potential_matches(username):
                   .join(User, User.username == Match.user_being_matched)
                   .filter(Match.match_status.is_(True))
                   .all())
-        matches = User.query.filter(User.username.in_([m.user_matching for m in matches_list])).all()
+        matches = User.query.filter(User.username.in_(
+            [m.user_matching for m in matches_list])).filter(
+            User.username.not_in([m.user_being_matched for m in matches_list])).all()
         return render_template("potential-matches.html", matches=matches)
 
     else:
@@ -251,23 +253,23 @@ def matches(username):
 
     if g.user:
 
-        matches_list = (Match
-                  .query
-                  .filter
-                  (and_(and_(Match.user_being_matched == username,
-                               Match.match_status.is_(True))),
-                       (and_(Match.user_matching == username,
-                               Match.match_status.is_(True))))
-                  .all())
+        # matches_list = (Match
+        #           .query
+        #           .filter
+        #           (and_(and_(Match.user_being_matched == username,
+        #                        Match.match_status.is_(True))),
+        #                (and_(Match.user_matching == username,
+        #                        Match.match_status.is_(True))))
+        #           .all())
 
-        matches_list1 = matches_list = (Match
+        matches_list1 = (Match
                   .query
                   .filter
                     (and_(Match.user_being_matched == username,
                                Match.match_status.is_(True)))
                   .all())
 
-        matches_list2 = matches_list = (Match
+        matches_list2 = (Match
                   .query
                   .filter
                     (and_(Match.user_matching == username,
@@ -275,16 +277,20 @@ def matches(username):
                   .all())
 
         matches_list3 = []
+        for match in matches_list1:
+            name1 = match.user_matching
+            for match in matches_list2:
+                name2 = match.user_being_matched
+                if name1 == name2:
+                    matches_list3.append(name1)
 
-        for el in matches_list1:
-            if el.user_being_matched in matches_list2:
-                matches_list3.append(el.user_matching)
+        matches = []
+        for name in matches_list3:
+            matches.append(User.query.get(name))
 
-
-
-        matches = User.query.filter(User.username.in_([m.user_matching for m in matches_list])).all()
-        breakpoint()
-        return render_template("matches.html", matches=matches_list3)
+        # matches = User.query.filter(User.username.in_([m.user_matching for m in matches_list])).all()
+        # breakpoint()
+        return render_template("matches.html", matches = matches)
 
     else:
         return render_template("not-user-home.html")
