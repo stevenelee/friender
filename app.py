@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy.exc import IntegrityError, or_
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 
 from forms import SignUpForm, LoginForm, CSRFProtection
 from models import db, connect_db, User, Match
