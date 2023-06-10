@@ -90,7 +90,6 @@ class User(db.Model):
         default=DEFAULT_IMAGE_URL,
     )
 
-    # messages = db.relationship('Message', backref="user", cascade="all, delete-orphan")
 
     matched = db.relationship(
         "User",
@@ -100,9 +99,6 @@ class User(db.Model):
         backref="matching",
     )
 
-    # liked_messages = db.relationship('Message',
-    #                                  secondary="likes",
-    #                                  backref="liking_user")
 
     def __repr__(self):
         return f"<User #{self.username}: {self.first_name} {self.last_name}, {self.email}>"
@@ -156,22 +152,6 @@ class User(db.Model):
                 return user
 
         return False
-
-
-    def is_followed_by(self, other_user):
-        """Is this user followed by `other_user`?"""
-
-        found_user_list = [
-            user for user in self.followers if user == other_user]
-        return len(found_user_list) == 1
-
-
-    def is_following(self, other_user):
-        """Is this user following `other_use`?"""
-
-        found_user_list = [
-            user for user in self.following if user == other_user]
-        return len(found_user_list) == 1
 
 
 def connect_db(app):

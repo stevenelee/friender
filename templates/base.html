@@ -33,20 +33,20 @@
                 <li><a href="/signup">Sign up</a></li>
                 <li><a href="/login">Log in</a></li>
               {% else %}
+              <li>
+                <a href="/users/{{ g.user.username }}">
+                  <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
+                  <!-- <span>{{ g.user.username }}</span> -->
+                </a>
+              </li>
+              <li>
+                <a href="/users/{{ g.user.username }}">{{ g.user.username }}</a>
+              </li>
                 <li>
-                    <a href="/users/{{ g.user.username }}/matches">Matches</a>
+                    <a href="/users/{{ g.user.username }}/matches">Friends</a>
                 </li>
                 <li>
-                    <a href="/users/{{ g.user.username }}/potential-matches">Potentials</a>
-                </li>
-                <li>
-                  <a href="/users/{{ g.user.username }}">
-                    <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
-                    <!-- <span>{{ g.user.username }}</span> -->
-                  </a>
-                </li>
-                <li>
-                  <a href="/users/{{ g.user.username }}">{{ g.user.username }}</a>
+                    <a href="/users/{{ g.user.username }}/potential-matches">Matches</a>
                 </li>
                 <!-- <li><a href="/messages/new">something-match-related</a></li> -->
                 <li>

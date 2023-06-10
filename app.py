@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
@@ -199,34 +199,6 @@ def match(username):
     return redirect("/")
 
 
-##############################################################################
-# Homepage and error pages
-
-@app.get('/')
-def homepage():
-    """Show user users who want to match with them or who they might
-    want to match with"""
-
-    if g.user:
-        distance = g.user.friend_radius
-        zipcode = g.user.zipcode
-        friend_zipcodes = get_zipcodes(distance, zipcode)
-
-        matches = (User
-                   .query
-                   .filter(and_(User.username != g.user.username,
-                            (or_(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode))))
-                   .limit(10)
-                   .all())
-
-        return render_template("user-home.html", matches=matches)
-
-
-    else:
-        return render_template("not-user-home.html")
-
-
-
 @app.get('/users/<username>/potential-matches')
 def potential_matches(username):
     """Show other users who want to be friends"""
@@ -294,3 +266,33 @@ def matches(username):
 
     else:
         return render_template("not-user-home.html")
+
+
+##############################################################################
+# Homepage and error pages
+
+@app.get('/')
+def homepage():
+    """Show user users who want to match with them or who they might
+    want to match with"""
+
+    if g.user:
+        distance = g.user.friend_radius
+        zipcode = g.user.zipcode
+        friend_zipcodes = get_zipcodes(distance, zipcode)
+
+        matches = (User
+                   .query
+                   .filter(and_(User.username != g.user.username,
+                            (or_(User.zipcode.in_(friend_zipcodes), User.zipcode == zipcode))))
+                   .limit(10)
+                   .all())
+
+        return render_template("user-home.html", matches=matches)
+
+
+    else:
+        return render_template("not-user-home.html")
+
+
+
